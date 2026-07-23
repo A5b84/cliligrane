@@ -8,14 +8,18 @@ import fr.dossierfacile.common.config.ImageIOInitializer;
 import fr.dossierfacile.common.service.MimeTypeDetectionServiceImpl;
 import fr.dossierfacile.common.service.interfaces.MimeTypeDetectionService;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Main {
+
     public static void main(String[] args) {
-        
         ImageIOInitializer.initialize();
         CliParameters parameters = CliParameters.parseOrExit(args);
         CliWatermarkService cliWatermarkService = createCliWatermarkService();
         cliWatermarkService.processAndSave(
                 parameters.inputPath(), parameters.outputPath(), parameters.watermarkText());
+        log.info("Successfully saved watermarked document to {}", parameters.outputPath());
     }
 
     private static CliWatermarkService createCliWatermarkService() {

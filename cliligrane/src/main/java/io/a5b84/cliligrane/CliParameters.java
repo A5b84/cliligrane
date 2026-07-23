@@ -9,7 +9,7 @@ record CliParameters(Path inputPath, Path outputPath, String watermarkText) {
         if (result.isPresent()) {
             return result.get();
         } else {
-            System.err.println("Usage: cliligrane-cli.jar <input> <output> <cliligrane>");
+            System.err.println("Usage: cliligrane.jar <input> <output> <watermark>");
             System.exit(1);
             return null;
         }
