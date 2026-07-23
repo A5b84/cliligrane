@@ -1,7 +1,5 @@
 package fr.dossierfacile.common.service.interfaces;
 
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -12,16 +10,6 @@ import java.io.InputStream;
  * of the client-supplied Content-Type header which can be spoofed.
  */
 public interface MimeTypeDetectionService {
-
-    /**
-     * Detects the MIME type of the given file by reading its content (magic bytes).
-     * The original filename is used as a hint to Tika after path traversal neutralization.
-     *
-     * @param file the uploaded file
-     * @return the detected MIME type, or {@code "application/octet-stream"} if detection is inconclusive
-     * @throws IOException if the file content cannot be read
-     */
-    String detect(MultipartFile file) throws IOException;
 
     /**
      * Detects the MIME type of the given file by reading its content (magic bytes).

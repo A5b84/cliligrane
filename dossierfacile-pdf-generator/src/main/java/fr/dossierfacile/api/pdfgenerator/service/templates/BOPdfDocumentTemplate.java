@@ -4,24 +4,21 @@ import com.drew.imaging.ImageMetadataReader;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifIFD0Directory;
-import com.google.zxing.*;
-import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
-import com.google.zxing.common.HybridBinarizer;
-import com.google.zxing.multi.GenericMultipleBarcodeReader;
-import com.google.zxing.multi.MultipleBarcodeReader;
 import com.twelvemonkeys.image.ImageUtil;
+
 import fr.dossierfacile.api.pdfgenerator.configuration.FeatureFlipping;
 import fr.dossierfacile.api.pdfgenerator.model.FileInputStream;
 import fr.dossierfacile.api.pdfgenerator.model.PageDimension;
 import fr.dossierfacile.api.pdfgenerator.model.PdfTemplateParameters;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfSignatureService;
-import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfTemplate;
 import fr.dossierfacile.common.service.zxing.BarcodeHit;
 import fr.dossierfacile.common.service.zxing.NativeBarcodeReader;
+import fr.dossierfacile.common.utils.MediaTypes;
+
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -32,13 +29,7 @@ import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.tools.imageio.ImageIOUtil;
-import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Service;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
@@ -52,20 +43,13 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-@Service
+import javax.imageio.ImageIO;
+
 @AllArgsConstructor
 @Slf4j
-@Primary
-public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>> {
-    public static final String DEFAULT_WATERMARK = "  DOCUMENTS EXCLUSIVEMENT DESTIN\u00c9S \u00c0 LA LOCATION IMMOBILI\u00c8RE     ";
-    private final PdfTemplateParameters params = PdfTemplateParameters.builder().build();
-    private final Locale locale = LocaleContextHolder.getLocale();
-    private final MessageSource messageSource;
+public class BOPdfDocumentTemplate {
 
-    private final FeatureFlipping featureFlipping;
-    private final PdfSignatureService pdfSignatureService;
-
-    private final Color[] COLORS = {
+    private static final Color[] COLORS = {
             new Color(64, 64, 64, 255),
             new Color(32, 32, 32, 220),
             new Color(0, 0, 0, 110),
@@ -73,6 +57,9 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
             new Color(255, 0, 0, 170)
     };
 
+    private final FeatureFlipping featureFlipping;
+    private final PdfSignatureService pdfSignatureService;
+    private final PdfTemplateParameters params = PdfTemplateParameters.DEFAULT;
 
     private static ConvolveOp getGaussianBlurFilter(int radius, boolean horizontal) {
         int size = radius * 2 + 1;
@@ -97,15 +84,8 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
         return new ConvolveOp(kernel, ConvolveOp.EDGE_NO_OP, null);
     }
 
-    @Override
-    public InputStream render(List<FileInputStream> data) throws Exception {
-        return this.render(data,
-                messageSource.getMessage("tenant.pdf.watermark", null, DEFAULT_WATERMARK, locale));
-    }
-
-    public InputStream render(List<FileInputStream> data, String watermarkText) throws Exception {
-        final String watermarkToApply = StringUtils.isNotBlank(watermarkText) ? watermarkText + "   " :
-                messageSource.getMessage("tenant.pdf.watermark.default", null, " https://filigrane.beta.gouv.fr/   ", locale);
+    public InputStream render(List<FileInputStream> data, String watermarkText) throws IOException {
+        final String watermarkToApply = watermarkText + "   ";
 
         try (PDDocument document = new PDDocument()) {
 
@@ -124,7 +104,7 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
                 pdfSignatureService.signAndSave(document, baos);
                 return new ByteArrayInputStream(baos.toByteArray());
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             log.error("Exception while generate BO PDF documents", e);
             throw e;
         }
@@ -139,9 +119,9 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
     private List<BufferedImage> convertToImages(FileInputStream fileInputStream) {
         try {
 
-            if (MediaType.APPLICATION_PDF.equalsTypeAndSubtype(fileInputStream.getMediaType())) {
+            if (MediaTypes.APPLICATION_PDF.equals(fileInputStream.mediaType())) {
                 List<BufferedImage> images = new ArrayList<>();
-                try (PDDocument document = Loader.loadPDF(fileInputStream.getInputStream().readAllBytes())) {
+                try (PDDocument document = Loader.loadPDF(fileInputStream.inputStream().readAllBytes())) {
                     PDFRenderer pdfRenderer = new PDFRenderer(document);
                     PDPageTree pagesTree = document.getPages();
                     for (int i = 0; i < pagesTree.getCount(); i++) {
@@ -157,7 +137,7 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
                 }
             }
 
-            return Collections.singletonList(createImageWithOrientation(fileInputStream.getInputStream()));
+            return Collections.singletonList(createImageWithOrientation(fileInputStream.inputStream()));
 
         } catch (IOException e) {
             throw new RuntimeException("Unable to convert pdf to image", e);
@@ -166,15 +146,15 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
 
     private float getScale(PDRectangle pageMediaBox) {
         float ratioImage = pageMediaBox.getHeight() / pageMediaBox.getWidth();
-        float ratioPDF = params.mediaBox.getHeight() / params.mediaBox.getWidth();
+        float ratioPDF = params.mediaBox().getHeight() / params.mediaBox().getWidth();
 
         // scale according the greater axis
         PageDimension dimension = (ratioImage < ratioPDF) ?
                 new PageDimension((int) pageMediaBox.getWidth(), (int) (pageMediaBox.getWidth() * ratioPDF), 0)
                 : new PageDimension((int) (pageMediaBox.getHeight() / ratioPDF), (int) pageMediaBox.getHeight(), 0);
 
-        return (dimension.width < params.maxPage.width) ? 1f :
-                params.maxPage.width / pageMediaBox.getWidth();
+        return (dimension.width() < params.maxPage().width()) ? 1f :
+                params.maxPage().width() / pageMediaBox.getWidth();
     }
 
     private BufferedImage createImageWithOrientation(InputStream inputStream) throws IOException {
@@ -248,7 +228,7 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
             // allows to have small variation on the watermark position at each generation
             float spaceBetweenText = diagonal / ThreadLocalRandom.current().nextFloat(8f, 10f);
             for (int i = 1; i < 11; i++) {
-                Font font = new Font("Arial", Font.PLAIN, 28 * bim.getWidth() / params.maxPage.width);
+                Font font = new Font("Arial", Font.PLAIN, 28 * bim.getWidth() / params.maxPage().width());
                 if (featureFlipping.shouldUseColors()) {
                     g.setColor(COLORS[ThreadLocalRandom.current().nextInt(0, COLORS.length)]);
                 } else {
@@ -290,7 +270,7 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
 
             BufferedImage cropedRotated = rotated.getSubimage(diagonal / 2 - bim.getWidth() / 2, diagonal / 2 - bim.getHeight() / 2, diagonal / 2 + bim.getWidth() / 2, diagonal / 2 + bim.getHeight() / 2);
             List<BarcodeHit> qrCodes = detectQRCodes(bim);
-            log.info("[QR_CODE] Qr codes detected: " + qrCodes.size());
+            log.debug("[QR_CODE] Qr codes detected: {}", qrCodes.size());
 
             Graphics2D graphics = cropedRotated.createGraphics();
             graphics.setComposite(AlphaComposite.Clear);
@@ -328,13 +308,12 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
     /**
      * Fit image to page dimension - A4 with 128 DPI
      *
-     * @param bim
      * @return image fit to the page
      */
     private BufferedImage fitImageToPage(BufferedImage bim) {
         try {
             float ratioImage = bim.getHeight() / (float) bim.getWidth();
-            float ratioPDF = params.mediaBox.getHeight() / params.mediaBox.getWidth();
+            float ratioPDF = params.mediaBox().getHeight() / params.mediaBox().getWidth();
 
             // scale according the greater axis
             PageDimension dimension = (ratioImage < ratioPDF) ?
@@ -342,26 +321,25 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
                     : new PageDimension((int) (bim.getHeight() / ratioPDF), bim.getHeight(), 0);
 
 
-            float scale = (dimension.width < params.maxPage.width) ? 1f :
-                    params.maxPage.width / (float) bim.getWidth();// image is too big - scale if necessary
+            float scale = (dimension.width() < params.maxPage().width()) ? 1f :
+                    params.maxPage().width() / (float) bim.getWidth();// image is too big - scale if necessary
 
             // translate in center and scale if necessary
             AffineTransform affineTransform = new AffineTransform();
-            affineTransform.translate(scale * (dimension.width - bim.getWidth()) / 2, scale * (dimension.height - bim.getHeight()) / 2);
+            affineTransform.translate(scale * (dimension.width() - bim.getWidth()) / 2, scale * (dimension.height() - bim.getHeight()) / 2);
             affineTransform.scale(scale, scale);
 
             // Draw the image on to the buffered image
-            BufferedImage resultImage = new BufferedImage((int) (scale * dimension.width), (int) (scale * dimension.height), BufferedImage.TYPE_INT_RGB);
+            BufferedImage resultImage = new BufferedImage((int) (scale * dimension.width()), (int) (scale * dimension.height()), BufferedImage.TYPE_INT_RGB);
 
             Graphics2D g = resultImage.createGraphics();
             g.setColor(Color.WHITE);
-            g.fillRect(0, 0, (int) (scale * dimension.width), (int) (scale * dimension.height));
+            g.fillRect(0, 0, (int) (scale * dimension.width()), (int) (scale * dimension.height()));
             g.drawImage(bim, affineTransform, null);
             g.dispose();
 
             return resultImage;
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RuntimeException("Unable to fit image to the page", e);
         }
     }
@@ -377,7 +355,7 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
         document.addPage(page);
 
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            ImageIOUtil.writeImage(bim, "jpg", out, params.maxPage.dpi, params.compressionQuality);
+            ImageIOUtil.writeImage(bim, "jpg", out, params.maxPage().dpi(), params.compressionQuality());
 
 
             PDImageXObject pdImage = PDImageXObject.createFromByteArray(document, out.toByteArray(), "");
@@ -385,8 +363,7 @@ public class BOPdfDocumentTemplate implements PdfTemplate<List<FileInputStream>>
                 contentStream.drawImage(pdImage, 0, 0, PDRectangle.A4.getWidth(), bim.getHeight() * PDRectangle.A4.getWidth() / bim.getWidth());
             }
         } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException("Unable to write image");
+            throw new RuntimeException("Unable to write image", e);
         }
     }
 

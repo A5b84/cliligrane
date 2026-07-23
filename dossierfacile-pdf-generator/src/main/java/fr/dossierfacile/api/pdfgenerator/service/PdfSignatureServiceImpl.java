@@ -3,7 +3,6 @@ package fr.dossierfacile.api.pdfgenerator.service;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfSignatureService;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
@@ -17,8 +16,6 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.bouncycastle.util.CollectionStore;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -34,23 +31,17 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Calendar;
 
-@Slf4j
-@Service
 @RequiredArgsConstructor
 public class PdfSignatureServiceImpl implements PdfSignatureService {
 
     private static final String SERVICE_NAME = "Cliligrane";
 
-    @Value("${pdf.signature.activation:false}")
-    private boolean signatureActivation;
-    @Value("${pdf.certificate:}")
-    private String certificate;
-
-    @Value("${pdf.private_key:}")
-    private String privateKey;
+    private final boolean signatureActivation;
+    private final String certificate;
+    private final String privateKey;
 
     @Override
-    public void signAndSave(PDDocument document, ByteArrayOutputStream baos) throws Exception {
+    public void signAndSave(PDDocument document, ByteArrayOutputStream baos) throws IOException {
         PDDocumentInformation information = new PDDocumentInformation();
         information.setCreator(SERVICE_NAME);
         information.setCreationDate(Calendar.getInstance());
@@ -99,7 +90,7 @@ public class PdfSignatureServiceImpl implements PdfSignatureService {
         generator.addSignerInfoGenerator(new JcaSignerInfoGeneratorBuilder(new JcaDigestCalculatorProviderBuilder().build())
                 .build(contentSigner, (X509Certificate) certificates[0]));
 
-        CollectionStore certStore = new JcaCertStore(Arrays.asList(certificates));
+        CollectionStore<?> certStore = new JcaCertStore(Arrays.asList(certificates));
         generator.addCertificates(certStore);
 
         byte[] contentBytes = content.readAllBytes();

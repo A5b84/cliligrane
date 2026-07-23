@@ -7,16 +7,7 @@ public final class ImageUtils {
 
     private ImageUtils(){}
 
-    public static class GrayBytes {
-        public final byte[] data;
-        public final int width;
-        public final int height;
-        public final int stride;
-
-        public GrayBytes(byte[] data, int width, int height, int stride) {
-            this.data = data; this.width = width; this.height = height; this.stride = stride;
-        }
-    }
+    public record GrayBytes(byte[] data, int width, int height, int stride) {}
 
     public static GrayBytes toGrayBytes(BufferedImage src) {
         BufferedImage gray = new BufferedImage(src.getWidth(), src.getHeight(), BufferedImage.TYPE_BYTE_GRAY);

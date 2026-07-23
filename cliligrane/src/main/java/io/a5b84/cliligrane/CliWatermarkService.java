@@ -6,7 +6,7 @@ import fr.dossierfacile.common.service.interfaces.MimeTypeDetectionService;
 
 import lombok.AllArgsConstructor;
 
-import org.springframework.http.MediaType;
+import org.apache.tika.mime.MediaType;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,7 +40,7 @@ public class CliWatermarkService {
             String type =
                     mimeTypeDetectionService.detect(
                             inputStream, String.valueOf(path.getFileName()));
-            return MediaType.valueOf(type);
+            return MediaType.parse(type);
         } catch (IOException e) {
             throw new RuntimeException(
                     "Could not detect the media type of file at path " + path, e);

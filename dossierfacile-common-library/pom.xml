@@ -16,11 +16,6 @@
                             <artifactId>lombok</artifactId>
                             <version>${lombok.version}</version>
                         </path>
-                        <path>
-                            <groupId>org.mapstruct</groupId>
-                            <artifactId>mapstruct-processor</artifactId>
-                            <version>${org.mapstruct.version}</version>
-                        </path>
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
@@ -41,102 +36,12 @@
 
     <properties>
         <imageio.version>3.12.0</imageio.version>
-
-        <!--Libraries needed for OVH storage-->
-        <openstack4j.version>3.12</openstack4j.version>
-        <amazonaws.version>1.12.782</amazonaws.version>
-        <liquibase-sessionlock.version>1.6.9</liquibase-sessionlock.version>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.github.vladimir-bukhtoyarov</groupId>
-            <artifactId>bucket4j-core</artifactId>
-            <version>7.6.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-amqp</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <scope>runtime</scope>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>jakarta.servlet</groupId>
-            <artifactId>jakarta.servlet-api</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <scope>provided</scope>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.liquibase</groupId>
-            <artifactId>liquibase-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.github.blagerweij</groupId>
-            <artifactId>liquibase-sessionlock</artifactId>
-            <version>${liquibase-sessionlock.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.pdfbox</groupId>
-            <artifactId>pdfbox</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-validation</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.junit.vintage</groupId>
-                    <artifactId>junit-vintage-engine</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <!--Libraries needed for OVH storage DEPRECATED will be removed-->
-        <dependency>
-            <groupId>com.github.openstack4j.core</groupId>
-            <artifactId>openstack4j-core</artifactId>
-            <version>${openstack4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.openstack4j.core.connectors</groupId>
-            <artifactId>openstack4j-okhttp</artifactId>
-            <version>${openstack4j.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-web</artifactId>
-            <scope>provided</scope>
         </dependency>
 
         <!--BEGIN - Dependencies to avoid error when rendering some kind of format of pictures in pdf, when converting the page to image-->
@@ -183,47 +88,18 @@
         </dependency>
         <!--END - Dependencies to avoid error when rendering some kind of format of pictures in pdf, when converting the page to image-->
         <dependency>
-            <groupId>org.mapstruct</groupId>
-            <artifactId>mapstruct</artifactId>
-        </dependency>
-        <!--Updating version of HikariCP-->
-        <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-            <version>5.0.1</version>
-        </dependency>
-        <!--new version of the s3 lib-->
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>s3</artifactId>
-            <version>2.40.9</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>url-connection-client</artifactId>
-            <version>2.32.12</version> <!-- ou version compatible -->
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-admin-client</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents.client5</groupId>
-            <artifactId>httpclient5</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.brevo</groupId>
-            <artifactId>brevo</artifactId>
-            <scope>provided</scope>
+            <artifactId>jackson-databind</artifactId>
         </dependency>
         <dependency>
             <groupId>net.java.dev.jna</groupId>
             <artifactId>jna</artifactId>
-            <version>5.18.1</version>
+            <version>${jna.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.tika</groupId>
@@ -231,9 +107,16 @@
             <version>${tika.version}</version>
         </dependency>
         <dependency>
-            <groupId>jakarta.validation</groupId>
-            <artifactId>jakarta.validation-api</artifactId>
-            <scope>provided</scope>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jspecify</groupId>
+            <artifactId>jspecify</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
         </dependency>
     </dependencies>
 </project>

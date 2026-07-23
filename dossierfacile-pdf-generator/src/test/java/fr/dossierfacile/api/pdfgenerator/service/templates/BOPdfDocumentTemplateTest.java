@@ -2,21 +2,14 @@ package fr.dossierfacile.api.pdfgenerator.service.templates;
 
 import fr.dossierfacile.api.pdfgenerator.configuration.FeatureFlipping;
 import fr.dossierfacile.api.pdfgenerator.model.FileInputStream;
+import fr.dossierfacile.common.utils.MediaTypes;
+
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.MessageSource;
-import org.springframework.http.MediaType;
 
-import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -25,33 +18,23 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static org.mockito.Mockito.any;
+import javax.imageio.ImageIO;
 
 // Used for manual testing
 @Disabled
-@ExtendWith(MockitoExtension.class)
 public class BOPdfDocumentTemplateTest {
 
-    @Mock
-    MessageSource messageSource;
-    @Mock
-    FeatureFlipping featureFlipping;
-    @InjectMocks
-    BOPdfDocumentTemplate boPdfDocumentTemplate;
+    private static final String WATERMARK = "  DOCUMENTS EXCLUSIVEMENT DESTINÉS À LA LOCATION IMMOBILIÈRE     ";
+    private static final FeatureFlipping featureFlipping = new FeatureFlipping(true, true);
+    private static final BOPdfDocumentTemplate boPdfDocumentTemplate = new BOPdfDocumentTemplate(featureFlipping, null);
 
     File outputfile;
-
-    @BeforeEach
-    void init() {
-        Mockito.lenient().when(messageSource.getMessage(any(),any(),any(),any() )).thenReturn(BOPdfDocumentTemplate.DEFAULT_WATERMARK);
-        Mockito.when(featureFlipping.shouldUseColors()).thenReturn(true);
-        Mockito.when(featureFlipping.shouldUseDistortion()).thenReturn(true);
-    }
 
     @AfterEach
     void tearDown() {
         if (outputfile != null) {
             outputfile.delete();
+            outputfile = null;
         }
     }
 
@@ -62,14 +45,14 @@ public class BOPdfDocumentTemplateTest {
 
         FileInputStream data = FileInputStream
                 .builder()
-                .mediaType(MediaType.APPLICATION_PDF)
+                .mediaType(MediaTypes.APPLICATION_PDF)
                 .inputStream(is)
                 .build();
 
         File resultFile = new File("target/resultSpecial.pdf");
         resultFile.createNewFile();
 
-        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Collections.singletonList(data)));
+        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Collections.singletonList(data), WATERMARK));
 
         FileOutputStream w = new FileOutputStream(resultFile);
         w.write(bytes);
@@ -83,14 +66,14 @@ public class BOPdfDocumentTemplateTest {
 
         FileInputStream data = FileInputStream
                 .builder()
-                .mediaType(MediaType.APPLICATION_PDF)
+                .mediaType(MediaTypes.APPLICATION_PDF)
                 .inputStream(is)
                 .build();
 
         File resultFile = new File("target/resultTestPdfWrongSize.pdf");
         resultFile.createNewFile();
 
-        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Collections.singletonList(data)));
+        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Collections.singletonList(data), WATERMARK));
 
         FileOutputStream w = new FileOutputStream(resultFile);
         w.write(bytes);
@@ -106,29 +89,29 @@ public class BOPdfDocumentTemplateTest {
 
         FileInputStream data = FileInputStream
                 .builder()
-                .mediaType(MediaType.APPLICATION_PDF)
+                .mediaType(MediaTypes.APPLICATION_PDF)
                 .inputStream(is)
                 .build();
         FileInputStream data2 = FileInputStream
                 .builder()
-                .mediaType(MediaType.IMAGE_JPEG)
+                .mediaType(MediaTypes.IMAGE_JPEG)
                 .inputStream(isJPG)
                 .build();
         FileInputStream data3 = FileInputStream
                 .builder()
-                .mediaType(MediaType.APPLICATION_PDF)
+                .mediaType(MediaTypes.APPLICATION_PDF)
                 .inputStream(isTextPdf)
                 .build();
         FileInputStream data4 = FileInputStream
                 .builder()
-                .mediaType(MediaType.APPLICATION_PDF)
+                .mediaType(MediaTypes.APPLICATION_PDF)
                 .inputStream(isOpen)
                 .build();
 
         File resultFile = new File("target/resultFullTypeTestPdf.pdf");
         resultFile.createNewFile();
 
-        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Arrays.asList(data, data2, data3, data4)));
+        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Arrays.asList(data, data2, data3, data4), WATERMARK));
 
         FileOutputStream w = new FileOutputStream(resultFile);
         w.write(bytes);
@@ -141,14 +124,14 @@ public class BOPdfDocumentTemplateTest {
 
         FileInputStream data = FileInputStream
                 .builder()
-                .mediaType(MediaType.APPLICATION_PDF)
+                .mediaType(MediaTypes.APPLICATION_PDF)
                 .inputStream(is)
                 .build();
 
         File resultFile = new File("target/resultTestPdfWithJpeg.pdf");
         resultFile.createNewFile();
 
-        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Collections.singletonList(data)));
+        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Collections.singletonList(data), WATERMARK));
 
         FileOutputStream w = new FileOutputStream(resultFile);
         w.write(bytes);
@@ -163,23 +146,23 @@ public class BOPdfDocumentTemplateTest {
 
         FileInputStream data = FileInputStream
                 .builder()
-                .mediaType(MediaType.IMAGE_JPEG)
+                .mediaType(MediaTypes.IMAGE_JPEG)
                 .inputStream(is)
                 .build();
         FileInputStream data2 = FileInputStream
                 .builder()
-                .mediaType(MediaType.IMAGE_JPEG)
+                .mediaType(MediaTypes.IMAGE_JPEG)
                 .inputStream(is2)
                 .build();
         FileInputStream data3 = FileInputStream
                 .builder()
-                .mediaType(MediaType.IMAGE_JPEG)
+                .mediaType(MediaTypes.IMAGE_JPEG)
                 .inputStream(is3)
                 .build();
         File resultFile = new File("target/resultTestJpeg.pdf");
         resultFile.createNewFile();
 
-        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Arrays.asList(data, data2, data3)));
+        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Arrays.asList(data, data2, data3), WATERMARK));
 
         FileOutputStream w = new FileOutputStream(resultFile);
         w.write(bytes);
@@ -198,20 +181,18 @@ public class BOPdfDocumentTemplateTest {
     @DisplayName("Avoid render above qrcode")
     @Test
     public void check_watermark_not_in_qrcode() throws Exception {
-        Mockito.when(featureFlipping.shouldUseColors()).thenReturn(false);
-        Mockito.when(featureFlipping.shouldUseDistortion()).thenReturn(false);
         InputStream is = BOPdfDocumentTemplateTest.class.getClassLoader().getResourceAsStream("qrcode-sample.pdf");
 
         FileInputStream data = FileInputStream
                 .builder()
-                .mediaType(MediaType.APPLICATION_PDF)
+                .mediaType(MediaTypes.APPLICATION_PDF)
                 .inputStream(is)
                 .build();
 
         File resultFile = new File("target/resultTestPdfWithQrCode.pdf");
         resultFile.createNewFile();
 
-        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Collections.singletonList(data)));
+        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Collections.singletonList(data), WATERMARK));
 
         FileOutputStream w = new FileOutputStream(resultFile);
         w.write(bytes);

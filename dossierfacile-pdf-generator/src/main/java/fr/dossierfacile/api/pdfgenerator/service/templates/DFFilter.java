@@ -8,11 +8,13 @@ import java.awt.image.BufferedImage;
  * A filter which simulates a lens placed over an image.
  */
 public class DFFilter extends TransformFilter {
+
+    private static final int X_FREQUENCY = 12;
+    private static final int Y_FREQUENCY = 8;
+    private static final int MAX_DISTORSION = 28;
+
     private float width;
     private float height;
-    private int xFrequency = 12;
-    private int yFrequency = 8;
-    private int maxDistorsion = 28;
 
     public DFFilter() {
     }
@@ -25,35 +27,7 @@ public class DFFilter extends TransformFilter {
 
     protected void transformInverse(int x, int y, float[] out) {
         out[0] = x;
-        float r = (float) Math.sin(x * xFrequency  / width);
-        out[1] = y + maxDistorsion * (float) Math.sin(y * yFrequency / height) * r * r;
-    }
-
-    public String toString() {
-        return "Distort...";
-    }
-
-    public int getxFrequency() {
-        return xFrequency;
-    }
-
-    public void setxFrequency(int xFrequency) {
-        this.xFrequency = xFrequency;
-    }
-
-    public int getyFrequency() {
-        return yFrequency;
-    }
-
-    public void setyFrequency(int yFrequency) {
-        this.yFrequency = yFrequency;
-    }
-
-    public int getMaxDistorsion() {
-        return maxDistorsion;
-    }
-
-    public void setMaxDistorsion(int maxDistorsion) {
-        this.maxDistorsion = maxDistorsion;
+        float r = (float) Math.sin(x * X_FREQUENCY / width);
+        out[1] = y + MAX_DISTORSION * (float) Math.sin(y * Y_FREQUENCY / height) * r * r;
     }
 }

@@ -1,15 +1,16 @@
 package fr.dossierfacile.common.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.mock.web.MockMultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class MimeTypeDetectionServiceTest {
 
@@ -27,21 +28,14 @@ class MimeTypeDetectionServiceTest {
     @ParameterizedTest(name = "{0} → {2}")
     @MethodSource("knownMimeTypes")
     void should_detect_mime_type_from_magic_bytes(String filename, byte[] content, String expectedMimeType) throws IOException {
-        MockMultipartFile file = new MockMultipartFile("file", filename, null, content);
-        assertThat(service.detect(file)).isEqualTo(expectedMimeType);
-    }
-
-    @Test
-    void should_ignore_declared_content_type_and_detect_from_content() throws IOException {
-        byte[] pdfContent = "%PDF-1.4".getBytes();
-        MockMultipartFile file = new MockMultipartFile("file", "doc.pdf", "image/jpeg", pdfContent);
-        assertThat(service.detect(file)).isEqualTo("application/pdf");
+        InputStream inputStream = new ByteArrayInputStream(content);
+        assertThat(service.detect(inputStream, filename)).isEqualTo(expectedMimeType);
     }
 
     @Test
     void should_return_octet_stream_for_unknown_content() throws IOException {
         byte[] unknownContent = new byte[]{0x00, 0x01, 0x02, 0x03};
-        MockMultipartFile file = new MockMultipartFile("file", "unknown", null, unknownContent);
-        assertThat(service.detect(file)).isNotBlank();
+        InputStream inputStream = new ByteArrayInputStream(unknownContent);
+        assertThat(service.detect(inputStream, "unknown")).isNotBlank();
     }
 }

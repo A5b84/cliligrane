@@ -10,6 +10,7 @@ import fr.dossierfacile.common.service.interfaces.MimeTypeDetectionService;
 
 public class Main {
     public static void main(String[] args) {
+        
         ImageIOInitializer.initialize();
         CliParameters parameters = CliParameters.parseOrExit(args);
         CliWatermarkService cliWatermarkService = createCliWatermarkService();
@@ -19,10 +20,10 @@ public class Main {
 
     private static CliWatermarkService createCliWatermarkService() {
         MimeTypeDetectionService mimeTypeDetectionService = new MimeTypeDetectionServiceImpl();
-        FeatureFlipping featureFlipping = new FeatureFlipping();
-        PdfSignatureService pdfSignatureService = new PdfSignatureServiceImpl();
+        FeatureFlipping featureFlipping = new FeatureFlipping(true, true);
+        PdfSignatureService pdfSignatureService = new PdfSignatureServiceImpl(false, null, null);
         BOPdfDocumentTemplate boPdfDocumentTemplate =
-                new BOPdfDocumentTemplate(null, featureFlipping, pdfSignatureService);
+                new BOPdfDocumentTemplate(featureFlipping, pdfSignatureService);
         return new CliWatermarkService(mimeTypeDetectionService, boPdfDocumentTemplate);
     }
 }
