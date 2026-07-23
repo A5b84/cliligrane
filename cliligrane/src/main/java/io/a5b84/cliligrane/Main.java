@@ -4,11 +4,13 @@ import fr.dossierfacile.api.pdfgenerator.configuration.FeatureFlipping;
 import fr.dossierfacile.api.pdfgenerator.service.PdfSignatureServiceImpl;
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfSignatureService;
 import fr.dossierfacile.api.pdfgenerator.service.templates.BOPdfDocumentTemplate;
+import fr.dossierfacile.common.config.ImageIOInitializer;
 import fr.dossierfacile.common.service.MimeTypeDetectionServiceImpl;
 import fr.dossierfacile.common.service.interfaces.MimeTypeDetectionService;
 
 public class Main {
     public static void main(String[] args) {
+        ImageIOInitializer.initialize();
         CliParameters parameters = CliParameters.parseOrExit(args);
         CliWatermarkService cliWatermarkService = createCliWatermarkService();
         cliWatermarkService.processAndSave(

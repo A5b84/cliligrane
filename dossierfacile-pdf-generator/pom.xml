@@ -3,10 +3,9 @@
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>fr.gouv</groupId>
-		<artifactId>dossierfacile</artifactId>
+		<groupId>io.a5b84.cliligrane</groupId>
+		<artifactId>cliligrane-parent</artifactId>
 		<version>1.0.0</version>
-		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<groupId>fr.dossierfacile.api</groupId>
 	<artifactId>dossierfacile-pdf-generator</artifactId>

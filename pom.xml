@@ -15,7 +15,6 @@
     <version>1.0.0</version>
     <modules>
         <module>cliligrane</module>
-        <module>dossier-facile-logging-library</module>
         <module>dossierfacile-common-library</module>
         <module>dossierfacile-pdf-generator</module>
     </modules>
@@ -93,11 +92,6 @@
                 <groupId>com.github.junrar</groupId>
                 <artifactId>junrar</artifactId>
                 <version>7.5.10</version>
-            </dependency>
-            <dependency>
-                <groupId>fr.dossierfacile</groupId>
-                <artifactId>dossier-facile-logging-library</artifactId>
-                <version>${revision}</version>
             </dependency>
             <dependency>
                 <groupId>net.logstash.logback</groupId>

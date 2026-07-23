@@ -1,8 +1,10 @@
 package fr.dossierfacile.api.pdfgenerator.service;
 
 import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfSignatureService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
@@ -37,6 +39,8 @@ import java.util.Calendar;
 @RequiredArgsConstructor
 public class PdfSignatureServiceImpl implements PdfSignatureService {
 
+    private static final String SERVICE_NAME = "Cliligrane";
+
     @Value("${pdf.signature.activation:false}")
     private boolean signatureActivation;
     @Value("${pdf.certificate:}")
@@ -48,7 +52,7 @@ public class PdfSignatureServiceImpl implements PdfSignatureService {
     @Override
     public void signAndSave(PDDocument document, ByteArrayOutputStream baos) throws Exception {
         PDDocumentInformation information = new PDDocumentInformation();
-        information.setCreator("DossierFacile");
+        information.setCreator(SERVICE_NAME);
         information.setCreationDate(Calendar.getInstance());
         document.setDocumentInformation(information);
 
@@ -58,8 +62,8 @@ public class PdfSignatureServiceImpl implements PdfSignatureService {
             PDSignature signature = new PDSignature();
             signature.setFilter(PDSignature.FILTER_ADOBE_PPKLITE);
             signature.setSubFilter(PDSignature.SUBFILTER_ADBE_PKCS7_DETACHED);
-            signature.setName("DossierFacile");
-            signature.setReason("Document filigrané par DossierFacile");
+            signature.setName(SERVICE_NAME);
+            signature.setReason("Document filigrané par " + SERVICE_NAME);
             signature.setSignDate(Calendar.getInstance());
 
             document.addSignature(signature, content -> {

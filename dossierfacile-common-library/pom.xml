@@ -28,10 +28,9 @@
     </build>
 
     <parent>
-        <groupId>fr.gouv</groupId>
-        <artifactId>dossierfacile</artifactId>
+        <groupId>io.a5b84.cliligrane</groupId>
+        <artifactId>cliligrane-parent</artifactId>
         <version>1.0.0</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <groupId>fr.dossierfacile</groupId>
@@ -53,10 +52,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>fr.dossierfacile</groupId>
-            <artifactId>dossier-facile-logging-library</artifactId>
         </dependency>
         <dependency>
             <groupId>com.github.vladimir-bukhtoyarov</groupId>
