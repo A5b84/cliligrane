@@ -10,26 +10,16 @@
         <relativePath/>
     </parent>
 
-    <groupId>fr.gouv</groupId>
-    <artifactId>dossierfacile</artifactId>
+    <groupId>io.a5b84.cliligrane</groupId>
+    <artifactId>cliligrane-parent</artifactId>
     <version>1.0.0</version>
     <modules>
-        <module>dossierfacile-common-library</module>
-        <module>dossier-facile-logging-library</module>
-        <module>dossierfacile-common-test-library</module>
-        <module>dossierfacile-bo</module>
-        <module>dossierfacile-api-tenant</module>
-        <module>dossierfacile-api-owner</module>
-        <module>dossierfacile-api-watermark</module>
-        <module>dossierfacile-pdf-generator</module>
-        <module>dossierfacile-task-scheduler</module>
-        <module>dossierfacile-document-analysis</module>
         <module>cliligrane</module>
+        <module>dossier-facile-logging-library</module>
+        <module>dossierfacile-common-library</module>
+        <module>dossierfacile-pdf-generator</module>
     </modules>
     <packaging>pom</packaging>
-
-    <name>dossierfacile</name>
-    <description>DossierFacile</description>
 
     <properties>
         <revision>3.5.12</revision>
