@@ -10,7 +10,6 @@
 #include "ReaderOptions.h"
 #include "ImageView.h"
 #include "BarcodeFormat.h"
-#include "TextUtfEncoding.h"
 
 // Helper JSON (Gardé tel quel car il est très bien)
 static inline std::string json_escape(const std::string& s) {

@@ -1,0 +1,49 @@
+package io.a5b84.cliligrane;
+
+import fr.dossierfacile.api.pdfgenerator.model.FileInputStream;
+import fr.dossierfacile.api.pdfgenerator.service.templates.BOPdfDocumentTemplate;
+import fr.dossierfacile.common.service.interfaces.MimeTypeDetectionService;
+
+import lombok.AllArgsConstructor;
+
+import org.springframework.http.MediaType;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.List;
+
+@AllArgsConstructor
+public class CliWatermarkService {
+
+    private final MimeTypeDetectionService mimeTypeDetectionService;
+    private final BOPdfDocumentTemplate boPdfDocumentTemplate;
+
+    public void processAndSave(Path inputPath, Path outputPath, String watermarkText) {
+        MediaType mediaType = detectMediaType(inputPath);
+
+        try (InputStream inputStream = Files.newInputStream(inputPath);
+                InputStream watermarkedStream =
+                        boPdfDocumentTemplate.render(
+                                List.of(new FileInputStream(inputStream, mediaType)),
+                                watermarkText)) {
+            Files.copy(watermarkedStream, outputPath, StandardCopyOption.REPLACE_EXISTING);
+        } catch (Exception e) {
+            throw new RuntimeException("Could not process file at path " + inputPath, e);
+        }
+    }
+
+    private MediaType detectMediaType(Path path) {
+        try (InputStream inputStream = Files.newInputStream(path)) {
+            String type =
+                    mimeTypeDetectionService.detect(
+                            inputStream, String.valueOf(path.getFileName()));
+            return MediaType.valueOf(type);
+        } catch (IOException e) {
+            throw new RuntimeException(
+                    "Could not detect the media type of file at path " + path, e);
+        }
+    }
+}

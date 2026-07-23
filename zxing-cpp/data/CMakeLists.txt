@@ -28,3 +28,12 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         -Wl,-Bsymbolic
     )
 endif()
+
+# Link statically on Windows to prevent a UnsatisfiedLinkError at runtime when mingw or equivalent is not present
+if(MINGW)
+    target_link_options(zxing_jna PRIVATE
+        -static
+        -static-libgcc
+        -static-libstdc++
+    )
+endif()

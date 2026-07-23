@@ -4,10 +4,13 @@
 
 ⚠️⚠️ : Make sur your machine have the correct version of GCC and G++ installed (12 or nothing) if you don't have the library will be compiled with the legacy mode that will not detect DataMatrix correctly !
 
+To compile on Windows, you can use the `GCC 12.4.0 (with POSIX threads) + MinGW-w64 12.0.0 (MSVCRT) - release 1` 64-bit version of [WinLibs](https://winlibs.com/).
+
  - Go inside data folder and clone the zxing-cpp repository :
 
 ```bash
-  git clone https://github.com/zxing-cpp/zxing-cpp.git
+  cd zxing-cpp/data/
+  git clone https://github.com/zxing-cpp/zxing-cpp.git --depth 1 --recurse-submodules --shallow-submodules
 ```
  - Now create the cmake directory : 
 ```bash
@@ -20,6 +23,7 @@
  - Now inside the zxing_build directory you have the compiled jna wrapper that include the zxing-cpp library you have to move it to the corresponding jna directory :
    - For macos : copy the `libzxing_jna.dylib` file to the `src/main/resources/natives.macos-aarch64` directory of the common-library project
    - For linux : copy the `libzxing_jna.so` file to the `src/main/resources/natives.linux-x86_64` directory of the common-library project
+   - For Windows: `Copy-Item .\build_lib\libzxing_jna.dll ..\..\dossierfacile-common-library\src\main\resources\win32-x86-64\zxing_jna.dll`
 
 ## To cross compile with docker : 
 - You have to start the container with the docker-compose file : 

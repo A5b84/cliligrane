@@ -1,11 +1,6 @@
-# DossierFacile Back-end
+# cliligrane
 
-> [!NOTE]
-> DossierFacile.fr a été créé par le Ministère de la Transition écologique pour aider à la réalisation de dossiers de location.
-
-The project is available at [DossierFacile.fr](https://dossierfacile.fr).
-
-The front-end code is also accessible in [this repository](https://github.com/MTES-MCT/Dossier-Facile-Frontend).
+Unofficial fork of [DossierFacile](https://github.com/MTES-MCT/dossierfacile-backend) keeping only the document watermarking feature and exposing it via CLI.
 
 ## Infrastructure
 
@@ -13,7 +8,7 @@ The front-end code is also accessible in [this repository](https://github.com/MT
 
 ## Prerequisites
 
-You need to have [JDK 21](https://openjdk.org/projects/jdk/21/), [maven](https://maven.apache.org/) and [Docker](https://docs.docker.com/engine/install/) installed.
+You need to have [JDK 21](https://openjdk.org/projects/jdk/21/) and [maven](https://maven.apache.org/) installed.
 
 ## Docker
 

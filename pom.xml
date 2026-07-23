@@ -24,6 +24,7 @@
         <module>dossierfacile-pdf-generator</module>
         <module>dossierfacile-task-scheduler</module>
         <module>dossierfacile-document-analysis</module>
+        <module>cliligrane</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -86,6 +87,11 @@
             <dependency>
                 <groupId>fr.dossierfacile</groupId>
                 <artifactId>dossierfacile-document-analysis</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>fr.dossierfacile.api</groupId>
+                <artifactId>dossierfacile-pdf-generator</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
