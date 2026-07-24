@@ -1,6 +1,5 @@
 package io.a5b84.cliligrane;
 
-import io.a5b84.cliligrane.common.config.ImageIOInitializer;
 import io.a5b84.cliligrane.common.service.MimeTypeDetectionServiceImpl;
 import io.a5b84.cliligrane.common.service.interfaces.MimeTypeDetectionService;
 import io.a5b84.cliligrane.pdfgenerator.configuration.FeatureFlipping;
@@ -10,16 +9,15 @@ import io.a5b84.cliligrane.pdfgenerator.service.templates.BOPdfDocumentTemplate;
 
 import lombok.extern.slf4j.Slf4j;
 
+import picocli.CommandLine;
+
 @Slf4j
 public class Main {
 
     public static void main(String[] args) {
-        ImageIOInitializer.initialize();
-        CliParameters parameters = CliParameters.parseOrExit(args);
-        CliWatermarkService cliWatermarkService = createCliWatermarkService();
-        cliWatermarkService.processAndSave(
-                parameters.inputPath(), parameters.outputPath(), parameters.watermarkText());
-        log.info("Successfully saved watermarked document to {}", parameters.outputPath());
+        CliWatermarkService watermarkService = createCliWatermarkService();
+        int exitCode = new CommandLine(new CliligraneCommand(watermarkService)).execute(args);
+        System.exit(exitCode);
     }
 
     private static CliWatermarkService createCliWatermarkService() {
