@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.tika.mime.MediaType;
-import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,41 +15,34 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @RequiredArgsConstructor
 @Slf4j
-public class CliWatermarkService implements AutoCloseable {
+public class CliWatermarkService {
 
-    private final ExecutorService executorService =
-            Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private final MimeTypeDetectionService mimeTypeDetectionService;
     private final BOPdfDocumentTemplate boPdfDocumentTemplate;
+    private final ExecutorService executorService;
 
     /**
      * Watermarks the given batch of documents.
      *
      * @return whether all documents were processed successfully
      */
-    public boolean processBatch(DocumentBatch batch) throws InterruptedException {
+    public boolean processBatch(DocumentBatch batch) {
         long startTime = System.nanoTime();
         log.info("Starting processing of {} documents.", batch.entries().size());
         BatchProgress progress = new BatchProgress();
 
-        List<Callable<@Nullable Void>> callables =
+        CompletableFuture<?>[] futures =
                 batch.entries().stream()
-                        .<Callable<@Nullable Void>>map(
-                                entry ->
-                                        () -> {
-                                            processAndReport(batch, entry, progress);
-                                            return null;
-                                        })
-                        .toList();
-        executorService.invokeAll(callables);
+                        .map(entry -> processAsyncAndReport(batch, entry, progress))
+                        .toArray(CompletableFuture[]::new);
+        CompletableFuture.allOf(futures).join();
 
         long duration = System.nanoTime() - startTime;
         log.info(
@@ -66,41 +58,70 @@ public class CliWatermarkService implements AutoCloseable {
         return failedCount == 0;
     }
 
-    private void processAndReport(
+    private CompletableFuture<Void> processAsyncAndReport(
             DocumentBatch batch, DocumentBatch.Entry entry, BatchProgress progress) {
-        try {
-            long start = System.nanoTime();
-            process(entry.inputPath(), entry.outputPath(), batch.watermarkText());
-            long duration = System.nanoTime() - start;
-            progress.successfulCount().incrementAndGet();
-            log.info(
-                    "[{}/{}] Successfully processed {} in {} ms, saved result to {}.",
-                    progress.processedCount().incrementAndGet(),
-                    batch.entries().size(),
-                    entry.inputPath(),
-                    duration / TimeUnit.MILLISECONDS.toNanos(1),
-                    entry.outputPath());
-        } catch (Exception e) {
-            progress.failedCount().incrementAndGet();
-            log.error(
-                    "[{}/{}] Could not process {}.",
-                    progress.processedCount().incrementAndGet(),
-                    batch.entries().size(),
-                    entry.inputPath(),
-                    e);
-        }
+        return processAsync(entry.inputPath(), entry.outputPath(), batch.watermarkText())
+                .handle(
+                        (result, throwable) -> {
+                            if (throwable == null) {
+                                progress.successfulCount().incrementAndGet();
+                                log.info(
+                                        "[{}/{}] Successfully processed {}, saved result to {}.",
+                                        progress.processedCount().incrementAndGet(),
+                                        batch.entries().size(),
+                                        entry.inputPath(),
+                                        entry.outputPath());
+                            } else {
+                                progress.failedCount().incrementAndGet();
+                                log.error(
+                                        "[{}/{}] Could not process {}.",
+                                        progress.processedCount().incrementAndGet(),
+                                        batch.entries().size(),
+                                        entry.inputPath(),
+                                        throwable);
+                            }
+
+                            return result;
+                        });
     }
 
-    private void process(Path inputPath, Path outputPath, String watermarkText) throws IOException {
-        MediaType mediaType = detectMediaType(inputPath);
+    private CompletableFuture<Void> processAsync(
+            Path inputPath, Path outputPath, String watermarkText) {
+        InputStream inputStream;
 
-        try (InputStream inputStream = Files.newInputStream(inputPath);
-                InputStream watermarkedStream =
-                        boPdfDocumentTemplate.render(
-                                List.of(new FileInputStream(inputStream, mediaType)),
-                                watermarkText)) {
-            Files.copy(watermarkedStream, outputPath, StandardCopyOption.REPLACE_EXISTING);
+        try {
+            //noinspection resource
+            inputStream = Files.newInputStream(inputPath);
+        } catch (IOException e) {
+            return CompletableFuture.failedFuture(e);
         }
+
+        return CompletableFuture.supplyAsync(() -> detectMediaType(inputPath), executorService)
+                .thenCompose(
+                        mediaType ->
+                                boPdfDocumentTemplate.renderAsync(
+                                        List.of(new FileInputStream(inputStream, mediaType)),
+                                        watermarkText))
+                .thenAcceptAsync(
+                        watermarkedStream -> {
+                            try (watermarkedStream) {
+                                Files.copy(
+                                        watermarkedStream,
+                                        outputPath,
+                                        StandardCopyOption.REPLACE_EXISTING);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        },
+                        executorService)
+                .whenComplete(
+                        (result, throwable) -> {
+                            try {
+                                inputStream.close();
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
     }
 
     private MediaType detectMediaType(Path path) {
@@ -113,11 +134,6 @@ public class CliWatermarkService implements AutoCloseable {
             throw new RuntimeException(
                     "Could not detect the media type of file at path " + path, e);
         }
-    }
-
-    @Override
-    public void close() {
-        executorService.close();
     }
 
     private record BatchProgress(

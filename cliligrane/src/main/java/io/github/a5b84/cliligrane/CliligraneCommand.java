@@ -28,8 +28,6 @@ import java.util.stream.Collectors;
         })
 @RequiredArgsConstructor
 public class CliligraneCommand implements Callable<Integer> {
-    
-    private final CliWatermarkService watermarkService;
 
     @Spec private CommandSpec spec;
 
@@ -58,11 +56,13 @@ public class CliligraneCommand implements Callable<Integer> {
     private boolean usageHelpRequested;
 
     @Override
-    public Integer call() throws InterruptedException {
-        DocumentBatch batch = createAndValidateBatch();
-        ImageIOInitializer.initialize();
-        boolean allSuccessful = watermarkService.processBatch(batch);
-        return allSuccessful ? 0 : 1;
+    public Integer call() {
+        try (Services services = new Services()) {
+            DocumentBatch batch = createAndValidateBatch();
+            ImageIOInitializer.initialize();
+            boolean allSuccessful = services.getWatermarkService().processBatch(batch);
+            return allSuccessful ? 0 : 1;
+        }
     }
 
     private DocumentBatch createAndValidateBatch() {

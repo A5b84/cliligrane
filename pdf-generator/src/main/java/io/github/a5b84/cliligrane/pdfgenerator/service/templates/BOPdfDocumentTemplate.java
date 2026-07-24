@@ -41,6 +41,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
 
 import javax.imageio.ImageIO;
@@ -60,6 +62,7 @@ public class BOPdfDocumentTemplate {
     private final FeatureFlipping featureFlipping;
     private final PdfSignatureService pdfSignatureService;
     private final PdfTemplateParameters params = PdfTemplateParameters.DEFAULT;
+    private final ExecutorService executorService;
 
     private static ConvolveOp getGaussianBlurFilter(int radius, boolean horizontal) {
         int size = radius * 2 + 1;
@@ -84,30 +87,56 @@ public class BOPdfDocumentTemplate {
         return new ConvolveOp(kernel, ConvolveOp.EDGE_NO_OP, null);
     }
 
-    public InputStream render(List<FileInputStream> data, String watermarkText) throws IOException {
-        final String watermarkToApply = watermarkText + "   ";
+    public CompletableFuture<InputStream> renderAsync(
+            List<FileInputStream> data, String watermarkText) {
+        final String watermarkToApply = watermarkText + "     ";
+        List<CompletableFuture<List<BufferedImage>>> imageFutures =
+                data.stream()
+                        .map(fileInputStream -> renderDocumentAsync(fileInputStream, watermarkToApply))
+                        .toList();
 
-        try (PDDocument document = new PDDocument()) {
+        return awaitAll(imageFutures)
+                .thenApply(images -> {
+                    try (PDDocument document = new PDDocument()) {
+                        images.stream()
+                                .flatMap(Collection::stream)
+                                .forEach(image -> addImageAsPageToDocument(document, image));
 
-            data.stream()
-                    .map(this::convertToImages)
-                    .flatMap(Collection::stream)
-                    .map(this::smartCrop)
-                    .filter(Objects::nonNull)
-                    .map(this::fitImageToPage)
-                    .map(bim -> applyWatermark(bim, watermarkToApply))
-                    .forEach(bim -> addImageAsPageToDocument(document, bim));
+                        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+                            pdfSignatureService.signAndSave(document, baos);
+                            return new ByteArrayInputStream(baos.toByteArray());
+                        }
+                    } catch (IOException e) {
+                        throw new RuntimeException("Failed to generate PDF documents", e);
+                    }
+                });
+    }
 
+    private CompletableFuture<List<BufferedImage>> renderDocumentAsync(
+            FileInputStream fileInputStream, String watermarkText) {
+        return CompletableFuture.supplyAsync(() -> convertToImages(fileInputStream), executorService)
+                .thenCompose(images ->
+                        awaitAll(
+                                images.stream()
+                                        .map(image -> renderPageAsync(watermarkText, image))
+                                        .toList()));
+    }
 
-            try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+    private CompletableFuture<BufferedImage> renderPageAsync(
+            String watermarkText, BufferedImage image) {
+        return CompletableFuture.supplyAsync(() -> renderPage(image, watermarkText), executorService);
+    }
 
-                pdfSignatureService.signAndSave(document, baos);
-                return new ByteArrayInputStream(baos.toByteArray());
-            }
-        } catch (IOException e) {
-            log.error("Exception while generate BO PDF documents", e);
-            throw e;
-        }
+    private BufferedImage renderPage(BufferedImage image, String watermarkText) {
+        image = smartCrop(image);
+        image = fitImageToPage(image);
+        image = applyWatermark(image, watermarkText);
+        return image;
+    }
+
+    private <T> CompletableFuture<List<T>> awaitAll(List<CompletableFuture<T>> futures) {
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                .thenApply(ignored -> futures.stream().map(CompletableFuture::join).toList());
     }
 
     /**
@@ -366,6 +395,5 @@ public class BOPdfDocumentTemplate {
             throw new RuntimeException("Unable to write image", e);
         }
     }
-
 }
 
