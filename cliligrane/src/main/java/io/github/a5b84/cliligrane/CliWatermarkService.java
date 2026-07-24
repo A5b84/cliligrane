@@ -69,18 +69,21 @@ public class CliWatermarkService implements AutoCloseable {
     private void processAndReport(
             DocumentBatch batch, DocumentBatch.Entry entry, BatchProgress progress) {
         try {
+            long start = System.nanoTime();
             process(entry.inputPath(), entry.outputPath(), batch.watermarkText());
+            long duration = System.nanoTime() - start;
             progress.successfulCount().incrementAndGet();
             log.info(
-                    "[{}/{}] Successfully processed file at path {}, saved result to {}.",
+                    "[{}/{}] Successfully processed {} in {} ms, saved result to {}.",
                     progress.processedCount().incrementAndGet(),
                     batch.entries().size(),
                     entry.inputPath(),
+                    duration / TimeUnit.MILLISECONDS.toNanos(1),
                     entry.outputPath());
         } catch (Exception e) {
             progress.failedCount().incrementAndGet();
             log.error(
-                    "[{}/{}] Could not process file at path {}.",
+                    "[{}/{}] Could not process {}.",
                     progress.processedCount().incrementAndGet(),
                     batch.entries().size(),
                     entry.inputPath(),
