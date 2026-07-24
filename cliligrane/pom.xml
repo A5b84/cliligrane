@@ -13,8 +13,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>fr.dossierfacile.api</groupId>
-            <artifactId>dossierfacile-pdf-generator</artifactId>
+            <groupId>io.a5b84.cliligrane</groupId>
+            <artifactId>pdf-generator</artifactId>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

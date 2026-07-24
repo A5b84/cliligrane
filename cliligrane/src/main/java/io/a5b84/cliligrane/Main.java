@@ -1,12 +1,12 @@
 package io.a5b84.cliligrane;
 
-import fr.dossierfacile.api.pdfgenerator.configuration.FeatureFlipping;
-import fr.dossierfacile.api.pdfgenerator.service.PdfSignatureServiceImpl;
-import fr.dossierfacile.api.pdfgenerator.service.interfaces.PdfSignatureService;
-import fr.dossierfacile.api.pdfgenerator.service.templates.BOPdfDocumentTemplate;
-import fr.dossierfacile.common.config.ImageIOInitializer;
-import fr.dossierfacile.common.service.MimeTypeDetectionServiceImpl;
-import fr.dossierfacile.common.service.interfaces.MimeTypeDetectionService;
+import io.a5b84.cliligrane.common.config.ImageIOInitializer;
+import io.a5b84.cliligrane.common.service.MimeTypeDetectionServiceImpl;
+import io.a5b84.cliligrane.common.service.interfaces.MimeTypeDetectionService;
+import io.a5b84.cliligrane.pdfgenerator.configuration.FeatureFlipping;
+import io.a5b84.cliligrane.pdfgenerator.service.PdfSignatureServiceImpl;
+import io.a5b84.cliligrane.pdfgenerator.service.interfaces.PdfSignatureService;
+import io.a5b84.cliligrane.pdfgenerator.service.templates.BOPdfDocumentTemplate;
 
 import lombok.extern.slf4j.Slf4j;
 

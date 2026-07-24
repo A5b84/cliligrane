@@ -1,8 +1,8 @@
 package io.a5b84.cliligrane;
 
-import fr.dossierfacile.api.pdfgenerator.model.FileInputStream;
-import fr.dossierfacile.api.pdfgenerator.service.templates.BOPdfDocumentTemplate;
-import fr.dossierfacile.common.service.interfaces.MimeTypeDetectionService;
+import io.a5b84.cliligrane.common.service.interfaces.MimeTypeDetectionService;
+import io.a5b84.cliligrane.pdfgenerator.model.FileInputStream;
+import io.a5b84.cliligrane.pdfgenerator.service.templates.BOPdfDocumentTemplate;
 
 import lombok.AllArgsConstructor;
 

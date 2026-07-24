@@ -8,8 +8,8 @@
     <version>1.0.0</version>
     <modules>
         <module>cliligrane</module>
-        <module>dossierfacile-common-library</module>
-        <module>dossierfacile-pdf-generator</module>
+        <module>common-library</module>
+        <module>pdf-generator</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -21,6 +21,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <assertj.version>3.27.7</assertj.version>
+        <imageio.version>3.12.0</imageio.version>
         <jackson-bom.version>2.21.4</jackson-bom.version>
         <jhlabs-filters.version>2.0.235-1</jhlabs-filters.version>
         <jna.version>5.18.1</jna.version>
@@ -37,13 +38,13 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>fr.dossierfacile</groupId>
-                <artifactId>dossierfacile-common-library</artifactId>
+                <groupId>io.a5b84.cliligrane</groupId>
+                <artifactId>common-library</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
-                <groupId>fr.dossierfacile.api</groupId>
-                <artifactId>dossierfacile-pdf-generator</artifactId>
+                <groupId>io.a5b84.cliligrane</groupId>
+                <artifactId>pdf-generator</artifactId>
                 <version>${revision}</version>
             </dependency>
 
