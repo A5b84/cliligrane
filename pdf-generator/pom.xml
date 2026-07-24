@@ -3,7 +3,7 @@
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>io.a5b84.cliligrane</groupId>
+		<groupId>io.github.a5b84.cliligrane</groupId>
 		<artifactId>cliligrane-parent</artifactId>
 		<version>1.0.0</version>
 	</parent>
@@ -23,7 +23,7 @@
 		</dependency>
 
 		<dependency>
-			<groupId>io.a5b84.cliligrane</groupId>
+			<groupId>io.github.a5b84.cliligrane</groupId>
 			<artifactId>common-library</artifactId>
 		</dependency>
 

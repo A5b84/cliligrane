@@ -23,7 +23,7 @@
     </build>
 
     <parent>
-        <groupId>io.a5b84.cliligrane</groupId>
+        <groupId>io.github.a5b84.cliligrane</groupId>
         <artifactId>cliligrane-parent</artifactId>
         <version>1.0.0</version>
     </parent>
