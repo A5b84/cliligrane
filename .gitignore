@@ -1,34 +1,10 @@
-/dossierfacile-bo/tokens/
-/front/tokens/
-application-*.properties
-!application-test.properties
-document_analysis.properties
-.env
-.run
 target/
-mockstorage/
-mock-storage/
 .DS_Store
-static-front/
 logs/
 hs_err_pid*.log
-tmp
-**/certs/*
-elastalert/dist
-seed/
-docker-compose.overwrite.yml
 
 zxing-cpp/data/build_lib
 zxing-cpp/data/zxing-cpp
-
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
 
 ### IntelliJ IDEA ###
 .idea
@@ -43,14 +19,6 @@ zxing-cpp/data/zxing-cpp
 /dist/
 /nbdist/
 /.nb-gradle/
-
-# Elastic Beanstalk Files
-.elasticbeanstalk/*
-!.elasticbeanstalk/*.cfg.yml
-!.elasticbeanstalk/*.global.yml
-
-# Used in test
-7fdad8b1*
 
 # Maven wrapper - generated files not tracked
 .mvn/wrapper/maven-wrapper.jar
