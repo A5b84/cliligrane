@@ -3,8 +3,9 @@ package io.github.a5b84.cliligrane.pdfgenerator.service.templates;
 import io.github.a5b84.cliligrane.common.utils.MediaTypes;
 import io.github.a5b84.cliligrane.pdfgenerator.configuration.FeatureFlipping;
 import io.github.a5b84.cliligrane.pdfgenerator.model.FileInputStream;
+import io.github.a5b84.cliligrane.pdfgenerator.service.PdfSignatureServiceImpl;
+import io.github.a5b84.cliligrane.pdfgenerator.service.interfaces.PdfSignatureService;
 
-import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -12,9 +13,11 @@ import org.junit.jupiter.api.Test;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -26,9 +29,10 @@ public class BOPdfDocumentTemplateTest {
 
     private static final String WATERMARK = "  DOCUMENTS EXCLUSIVEMENT DESTINÉS À LA LOCATION IMMOBILIÈRE     ";
     private static final FeatureFlipping featureFlipping = new FeatureFlipping(true, true);
-    private static final BOPdfDocumentTemplate boPdfDocumentTemplate = new BOPdfDocumentTemplate(featureFlipping, null);
+    private static final PdfSignatureService pdfSignatureService = new PdfSignatureServiceImpl(false, null, null);
+    private static final BOPdfDocumentTemplate boPdfDocumentTemplate = new BOPdfDocumentTemplate(featureFlipping, pdfSignatureService);
 
-    File outputfile;
+    private File outputfile;
 
     @AfterEach
     void tearDown() {
@@ -49,13 +53,7 @@ public class BOPdfDocumentTemplateTest {
                 .inputStream(is)
                 .build();
 
-        File resultFile = new File("target/resultSpecial.pdf");
-        resultFile.createNewFile();
-
-        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Collections.singletonList(data), WATERMARK));
-
-        FileOutputStream w = new FileOutputStream(resultFile);
-        w.write(bytes);
+        saveToFile(boPdfDocumentTemplate.render(Collections.singletonList(data), WATERMARK), "target/resultSpecial.pdf");
     }
 
 
@@ -70,13 +68,7 @@ public class BOPdfDocumentTemplateTest {
                 .inputStream(is)
                 .build();
 
-        File resultFile = new File("target/resultTestPdfWrongSize.pdf");
-        resultFile.createNewFile();
-
-        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Collections.singletonList(data), WATERMARK));
-
-        FileOutputStream w = new FileOutputStream(resultFile);
-        w.write(bytes);
+        saveToFile(boPdfDocumentTemplate.render(Collections.singletonList(data), WATERMARK), "target/resultTestPdfWrongSize.pdf");
     }
 
     @DisplayName("Check if the render is correctly generated from all type textual pdf, pdf, image, non obfuscable pdf")
@@ -108,13 +100,7 @@ public class BOPdfDocumentTemplateTest {
                 .inputStream(isOpen)
                 .build();
 
-        File resultFile = new File("target/resultFullTypeTestPdf.pdf");
-        resultFile.createNewFile();
-
-        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Arrays.asList(data, data2, data3, data4), WATERMARK));
-
-        FileOutputStream w = new FileOutputStream(resultFile);
-        w.write(bytes);
+        saveToFile(boPdfDocumentTemplate.render(Arrays.asList(data, data2, data3, data4), WATERMARK), "target/resultFullTypeTestPdf.pdf");
     }
 
     @DisplayName("Check if the render is correctly generated from image pdf")
@@ -128,13 +114,7 @@ public class BOPdfDocumentTemplateTest {
                 .inputStream(is)
                 .build();
 
-        File resultFile = new File("target/resultTestPdfWithJpeg.pdf");
-        resultFile.createNewFile();
-
-        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Collections.singletonList(data), WATERMARK));
-
-        FileOutputStream w = new FileOutputStream(resultFile);
-        w.write(bytes);
+        saveToFile(boPdfDocumentTemplate.render(Collections.singletonList(data), WATERMARK),  "target/resultTestPdfWithJpeg.pdf");
     }
 
     @DisplayName("Check if the render is correctly generated from jpegs")
@@ -159,13 +139,8 @@ public class BOPdfDocumentTemplateTest {
                 .mediaType(MediaTypes.IMAGE_JPEG)
                 .inputStream(is3)
                 .build();
-        File resultFile = new File("target/resultTestJpeg.pdf");
-        resultFile.createNewFile();
 
-        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Arrays.asList(data, data2, data3), WATERMARK));
-
-        FileOutputStream w = new FileOutputStream(resultFile);
-        w.write(bytes);
+        saveToFile(boPdfDocumentTemplate.render(Arrays.asList(data, data2, data3), WATERMARK), "target/resultTestJpeg.pdf");
     }
 
     @DisplayName("Render watermark (used mostly for developing)")
@@ -189,12 +164,14 @@ public class BOPdfDocumentTemplateTest {
                 .inputStream(is)
                 .build();
 
-        File resultFile = new File("target/resultTestPdfWithQrCode.pdf");
-        resultFile.createNewFile();
+        saveToFile(boPdfDocumentTemplate.render(Collections.singletonList(data), WATERMARK), "target/resultTestPdfWithQrCode.pdf");
+    }
 
-        byte[] bytes = IOUtils.toByteArray(boPdfDocumentTemplate.render(Collections.singletonList(data), WATERMARK));
-
-        FileOutputStream w = new FileOutputStream(resultFile);
-        w.write(bytes);
+    private void saveToFile(InputStream inputStream, String path) {
+        try {
+            Files.copy(inputStream, Path.of(path), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
