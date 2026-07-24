@@ -58,10 +58,10 @@ public class CliligraneCommand implements Callable<Integer> {
     private boolean usageHelpRequested;
 
     @Override
-    public Integer call() {
+    public Integer call() throws InterruptedException {
         DocumentBatch batch = createAndValidateBatch();
         ImageIOInitializer.initialize();
-        boolean allSuccessful = watermarkService.processAndSaveBatch(batch);
+        boolean allSuccessful = watermarkService.processBatch(batch);
         return allSuccessful ? 0 : 1;
     }
 

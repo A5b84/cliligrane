@@ -15,8 +15,12 @@ import picocli.CommandLine;
 public class Main {
 
     public static void main(String[] args) {
-        CliWatermarkService watermarkService = createCliWatermarkService();
-        int exitCode = new CommandLine(new CliligraneCommand(watermarkService)).execute(args);
+        int exitCode;
+
+        try (CliWatermarkService watermarkService = createCliWatermarkService()) {
+            exitCode = new CommandLine(new CliligraneCommand(watermarkService)).execute(args);
+        }
+
         System.exit(exitCode);
     }
 

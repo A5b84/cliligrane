@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.tika.mime.MediaType;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,12 +16,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @RequiredArgsConstructor
 @Slf4j
-public class CliWatermarkService {
+public class CliWatermarkService implements AutoCloseable {
 
+    private final ExecutorService executorService =
+            Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     private final MimeTypeDetectionService mimeTypeDetectionService;
     private final BOPdfDocumentTemplate boPdfDocumentTemplate;
 
@@ -29,41 +36,29 @@ public class CliWatermarkService {
      *
      * @return whether all documents were processed successfully
      */
-    public boolean processAndSaveBatch(DocumentBatch batch) {
+    public boolean processBatch(DocumentBatch batch) throws InterruptedException {
         long startTime = System.nanoTime();
-        int successfulCount = 0;
-        int failedCount = 0;
-        int processedCount = 0;
+        log.info("Starting processing of {} documents.", batch.entries().size());
+        BatchProgress progress = new BatchProgress();
 
-        for (DocumentBatch.Entry entry : batch.entries()) {
-            try {
-                processAndSave(entry.inputPath(), entry.outputPath(), batch.watermarkText());
-                successfulCount++;
-                log.info(
-                        "[{}/{}] Successfully processed file at path {}, saved result to {}.",
-                        processedCount + 1,
-                        batch.entries().size(),
-                        entry.inputPath(),
-                        entry.outputPath());
-            } catch (Exception e) {
-                failedCount++;
-                log.error(
-                        "[{}/{}] Could not process file at path {}",
-                        processedCount + 1,
-                        batch.entries().size(),
-                        entry.inputPath(),
-                        e);
-            }
-
-            processedCount++;
-        }
+        List<Callable<@Nullable Void>> callables =
+                batch.entries().stream()
+                        .<Callable<@Nullable Void>>map(
+                                entry ->
+                                        () -> {
+                                            processAndReport(batch, entry, progress);
+                                            return null;
+                                        })
+                        .toList();
+        executorService.invokeAll(callables);
 
         long duration = System.nanoTime() - startTime;
         log.info(
                 "Successfully watermarked {} documents in {} ms.",
-                successfulCount,
+                progress.successfulCount().get(),
                 duration / TimeUnit.MILLISECONDS.toNanos(1));
 
+        int failedCount = progress.failedCount().get();
         if (failedCount > 0) {
             log.error("{} documents could not be watermarked.", failedCount);
         }
@@ -71,8 +66,29 @@ public class CliWatermarkService {
         return failedCount == 0;
     }
 
-    private void processAndSave(Path inputPath, Path outputPath, String watermarkText)
-            throws IOException {
+    private void processAndReport(
+            DocumentBatch batch, DocumentBatch.Entry entry, BatchProgress progress) {
+        try {
+            process(entry.inputPath(), entry.outputPath(), batch.watermarkText());
+            progress.successfulCount().incrementAndGet();
+            log.info(
+                    "[{}/{}] Successfully processed file at path {}, saved result to {}.",
+                    progress.processedCount().incrementAndGet(),
+                    batch.entries().size(),
+                    entry.inputPath(),
+                    entry.outputPath());
+        } catch (Exception e) {
+            progress.failedCount().incrementAndGet();
+            log.error(
+                    "[{}/{}] Could not process file at path {}.",
+                    progress.processedCount().incrementAndGet(),
+                    batch.entries().size(),
+                    entry.inputPath(),
+                    e);
+        }
+    }
+
+    private void process(Path inputPath, Path outputPath, String watermarkText) throws IOException {
         MediaType mediaType = detectMediaType(inputPath);
 
         try (InputStream inputStream = Files.newInputStream(inputPath);
@@ -93,6 +109,20 @@ public class CliWatermarkService {
         } catch (IOException e) {
             throw new RuntimeException(
                     "Could not detect the media type of file at path " + path, e);
+        }
+    }
+
+    @Override
+    public void close() {
+        executorService.close();
+    }
+
+    private record BatchProgress(
+            AtomicInteger successfulCount,
+            AtomicInteger failedCount,
+            AtomicInteger processedCount) {
+        public BatchProgress() {
+            this(new AtomicInteger(), new AtomicInteger(), new AtomicInteger());
         }
     }
 }

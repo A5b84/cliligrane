@@ -10,7 +10,7 @@ You need to have [JDK 21](https://openjdk.org/projects/jdk/21/) and [maven](http
 
 1. Build with `mvn package -DskipTests`.
    The built jar will be in `cliligrane\target`
-2. Run with `java -jar path/to/cliligrane.jar <input> <output> <watermark>`
+2. Run with `java -jar path/to/cliligrane.jar <input1> [<input2> ...] --output <output1> [<output2> ...] --text <watermark>`
 
 ## License
 
