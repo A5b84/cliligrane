@@ -59,6 +59,13 @@
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter</artifactId>
 		</dependency>
+
+		<!-- Bump transitive dependency of pdfbox-tools to fix CVE-2026-5588 -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-jdk18on</artifactId>
+			<version>${bcpkix-jdk18on.version}</version>
+		</dependency>
 	</dependencies>
 
 	<build>

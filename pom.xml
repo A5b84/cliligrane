@@ -21,6 +21,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <assertj.version>3.27.7</assertj.version>
+        <bcpkix-jdk18on.version>1.84</bcpkix-jdk18on.version>
         <imageio.version>3.12.0</imageio.version>
         <jackson-bom.version>2.21.4</jackson-bom.version>
         <jhlabs-filters.version>2.0.235-1</jhlabs-filters.version>
